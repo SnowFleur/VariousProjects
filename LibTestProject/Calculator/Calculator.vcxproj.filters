@@ -1,0 +1,33 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="Calculator.cpp">
+      <Filter>Calculator</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Math.h">
+      <Filter>mathLib</Filter>
+    </ClInclude>
+    <ClInclude Include="Vector.h">
+      <Filter>mathLib</Filter>
+    </ClInclude>
+    <ClInclude Include="Calculator.h">
+      <Filter>Calculator</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Calculator">
+      <UniqueIdentifier>{948455b7-5c80-4af5-9319-a48283733a1b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="mathLib">
+      <UniqueIdentifier>{1d880519-abbe-4641-9cf4-f669e2d667d5}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <Library Include="MathLib.lib">
+      <Filter>mathLib</Filter>
+    </Library>
+  </ItemGroup>
+</Project>
