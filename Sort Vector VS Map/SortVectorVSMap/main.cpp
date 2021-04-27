@@ -134,7 +134,6 @@ void TestInsertDeletedAndSearch() {
             }
             case 1: {
                 std::remove(v.begin(), v.end(), val);
-                std::sort(v.begin(), v.end());
                 break;
             }
             case 2: {
