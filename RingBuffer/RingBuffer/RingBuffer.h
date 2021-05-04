@@ -4,95 +4,94 @@
 
 #include<iostream>
 
-using BYTE  = unsigned char;
+using BYTE = unsigned char;
 using DWORD = unsigned long;
 
 class CRingBuffer {
 private:
     const DWORD     BUFFER_SIZE;
-    DWORD           remainReadSize_;
-    DWORD           remainWriteSize_;
 
-    BYTE*           buffer_;
-    BYTE*           readPointer_;
-    BYTE*           writePointer_;
+    BYTE* buffer_;
+    BYTE* beginPointer_;
+    BYTE* endPointer_;
+
+
+    BYTE* writePointer_;
+    DWORD   wrtieusedBufferSize;
+
+    BYTE* readPointer_;
+    DWORD   usedBufferSize;
 
 public:
     CRingBuffer(const DWORD ringBufferSize) :
-        BUFFER_SIZE{ringBufferSize},
-        remainReadSize_{ringBufferSize},
-        remainWriteSize_{ ringBufferSize },
+        usedBufferSize{ 0 },
+        BUFFER_SIZE{ ringBufferSize },
         buffer_{ nullptr },
-        readPointer_{nullptr },
-        writePointer_{ nullptr }
+        beginPointer_{ nullptr },
+        endPointer_{ nullptr },
+        writePointer_{ nullptr },
+        readPointer_{ nullptr }
     {
 
         buffer_ = new BYTE[BUFFER_SIZE]{};
-        writePointer_ = readPointer_ = buffer_;
+        readPointer_ = writePointer_ = beginPointer_ = buffer_;
+        endPointer_ = buffer_ + BUFFER_SIZE;
     }
 
     ~CRingBuffer() {
         if (buffer_ != nullptr) {
             delete[] buffer_;
         }
-    }
-
-
-    BYTE* GetWrtieBuffer(const DWORD requestSize) {
-
-        BYTE* getPointer{ nullptr };
-        try {
-
-            //여유가 있다면
-            if (remainWriteSize_ >= requestSize) {
-
-                getPointer = writePointer_;
-                writePointer_ += requestSize;
-                remainWriteSize_ -= requestSize;
-            }
-            
-            //경계 처리
-            else if (remainWriteSize_ < requestSize) {
-                throw std::overflow_error("Write Remain Buffer Size is small");
-            }
-
-            return getPointer;
-
-        }
-
-        catch (const std::exception& e) {
-            std::cout << __func__ << ": " << e.what() << "\n";
-        }
 
     }
 
     BYTE* GetReadBuffer(const DWORD requestSize) {
 
-        BYTE* getPointer{ nullptr };
-        try {
 
-            //여유가 있다면
-            if (remainReadSize_ >= requestSize) {
+        BYTE* resultPointer{ nullptr };
 
-                getPointer = readPointer_;
-                readPointer_ += requestSize;
-                remainReadSize_ -= requestSize;
-
-            }
-            //경계 처리
-            else if (remainReadSize_ < requestSize) {
-                throw std::overflow_error("Read Remain Buffer Size is small");
-            }
-
-            return getPointer;
+        //버퍼 사이즈보다 큰 사이즈를 요청한다면
+        if (requestSize > BUFFER_SIZE) {
+            throw std::exception("requestSize > BUFFER_SIZE");
+        }
+        // 충분한 경우
+        if (endPointer_ - readPointer_ > requestSize) {
+            resultPointer = readPointer_;
         }
 
-        catch (const std::exception& e) {
-            std::cout << __func__ << ": " << e.what() << "\n";
+        // 부족한 경우
+        else {
+            readPointer_ = beginPointer_;
+            resultPointer = readPointer_;
         }
 
+        readPointer_ += requestSize;
+        return resultPointer;
     }
 
+    BYTE* GetWriteBuffer(const DWORD requestSize) {
+
+        BYTE* resultPointer{ nullptr };
+
+        //버퍼 사이즈보다 큰 사이즈를 요청한다면
+        if (requestSize > BUFFER_SIZE) {
+            throw std::exception("requestSize > BUFFER_SIZE");
+        }
+
+        // 충분한 경우
+        if (endPointer_ - writePointer_ > requestSize) {
+            resultPointer = writePointer_;
+        }
+
+        // 부족한 경우
+        else {
+            writePointer_ = beginPointer_;
+            resultPointer = writePointer_;
+        }
+
+        writePointer_ += requestSize;
+        return resultPointer;
+    }
 
 #ifdef TEST_RING_BUFFER
 
@@ -101,13 +100,13 @@ public:
         for (DWORD i = 0; i < BUFFER_SIZE; ++i) {
 
             if (buffer_[i] == 0) {
-                std::cout << buffer_[i] << " ";
+                std::cout << buffer_[i] << "-";
             }
             else {
                 std::cout << buffer_[i] << " ";
             }
         }
-        
+
     }
 #endif
 
