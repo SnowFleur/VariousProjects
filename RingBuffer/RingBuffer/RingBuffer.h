@@ -11,20 +11,14 @@ class CRingBuffer {
 private:
     const DWORD     BUFFER_SIZE;
 
-    BYTE* buffer_;
-    BYTE* beginPointer_;
-    BYTE* endPointer_;
-
-
-    BYTE* writePointer_;
-    DWORD   wrtieusedBufferSize;
-
-    BYTE* readPointer_;
-    DWORD   usedBufferSize;
+    BYTE*   buffer_;
+    BYTE*   beginPointer_;
+    BYTE*   endPointer_;
+    BYTE*   writePointer_;
+    BYTE*   readPointer_;
 
 public:
     CRingBuffer(const DWORD ringBufferSize) :
-        usedBufferSize{ 0 },
         BUFFER_SIZE{ ringBufferSize },
         buffer_{ nullptr },
         beginPointer_{ nullptr },
@@ -41,12 +35,13 @@ public:
     ~CRingBuffer() {
         if (buffer_ != nullptr) {
             delete[] buffer_;
+            endPointer_ = beginPointer_ = nullptr;
+            writePointer_ = readPointer_ = nullptr;
         }
 
     }
 
     BYTE* GetReadBuffer(const DWORD requestSize) {
-
 
         BYTE* resultPointer{ nullptr };
 
