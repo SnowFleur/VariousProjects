@@ -1,0 +1,32 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Future Promise">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Package_task">
+      <UniqueIdentifier>{b8e4d90e-b2bd-4424-af00-42d0df0d5380}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Async">
+      <UniqueIdentifier>{c81f060a-5af8-4140-aa5e-ca628ae029c1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Practice">
+      <UniqueIdentifier>{2dc6c099-962e-45a6-b3b4-321a27e135b1}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Future Promise.cpp">
+      <Filter>Future Promise</Filter>
+    </ClCompile>
+    <ClCompile Include="package_task.cpp">
+      <Filter>Package_task</Filter>
+    </ClCompile>
+    <ClCompile Include="Async.cpp">
+      <Filter>Async</Filter>
+    </ClCompile>
+    <ClCompile Include="AsyncTimeCheck.cpp">
+      <Filter>Practice</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>
