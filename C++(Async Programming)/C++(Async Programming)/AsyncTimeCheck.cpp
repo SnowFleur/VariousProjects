@@ -4,21 +4,32 @@
 
 using namespace std::chrono;
 
-bool TerminateTime() {
+
+struct Person {
+public:
+    int age;
+};
+
+void TerminateTime(Person& p) {
     auto startTime = high_resolution_clock::now();
 
     while (true) {
         if (high_resolution_clock::now() - startTime >3s) {
-            return true;
+            std::cout << "Happy Birth Day" << p.age << "\n";
+            return;
         }
     }
 }
 
 
+
 int main() {
 
+    Person p;
+    p.age = 15;
+
     //호출을 원할 때
-    auto async = std::async(TerminateTime);
+    auto async = std::async(TerminateTime,std::ref(p));
 
     int time{};
     while (true) {
@@ -26,8 +37,8 @@ int main() {
         if (time > 1000) {
 
             if (async.wait_for(0s) == std::future_status::ready) {
-                int result = async.get();
-                std::cout << std::boolalpha << result << "\n";
+                async.get();
+
                 break;
             }
             else {
