@@ -13,10 +13,10 @@ public:
 		ReleaseSRWLockShared(&m_lock);
 	}
 
-	SRW_ReadGuard(const SRW_ReadGuard&)				= delete;
-	SRW_ReadGuard& operator=(const SRW_ReadGuard&)	= delete;
-	SRW_ReadGuard(SRW_ReadGuard&&)					= delete;
-	SRW_ReadGuard& operator=(SRW_ReadGuard&&)		= delete;
+	SRW_ReadGuard(const SRW_ReadGuard&) = delete;
+	SRW_ReadGuard& operator=(const SRW_ReadGuard&) = delete;
+	SRW_ReadGuard(SRW_ReadGuard&&) = delete;
+	SRW_ReadGuard& operator=(SRW_ReadGuard&&) = delete;
 };
 
 
@@ -31,10 +31,10 @@ public:
 		ReleaseSRWLockExclusive(&m_lock);
 	}
 
-	SRW_WriteGuard(const SRW_WriteGuard&)				= delete;
-	SRW_WriteGuard& operator=(const SRW_WriteGuard&)	= delete;
-	SRW_WriteGuard(SRW_WriteGuard&&)					= delete;
-	SRW_WriteGuard& operator=(SRW_WriteGuard&&)			= delete;
+	SRW_WriteGuard(const SRW_WriteGuard&) = delete;
+	SRW_WriteGuard& operator=(const SRW_WriteGuard&) = delete;
+	SRW_WriteGuard(SRW_WriteGuard&&) = delete;
+	SRW_WriteGuard& operator=(SRW_WriteGuard&&) = delete;
 };
 
 
@@ -42,10 +42,10 @@ public:
 
 
 #include<vector>
-constexpr int THREAD_COUNT	= 4;
-constexpr int READ			= 0;
-constexpr int PUSH			= 1;
-constexpr int POP			= 2;
+constexpr int THREAD_COUNT = 4;
+constexpr int READ = 0;
+constexpr int PUSH = 1;
+constexpr int POP = 2;
 
 
 std::vector<int> g_vector;
