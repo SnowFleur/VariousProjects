@@ -13,6 +13,8 @@ class CTestProcessor
 {
 private:
     std::vector<std::unique_ptr<CSnowThread >> vecSnowThread_;
+    int32_t sleepMs;
+
     uint32_t RunThread();
 public:
     CTestProcessor(const int32_t runThreadCount);
@@ -20,5 +22,6 @@ public:
 
 public:
     void StartTest();
+    void SetThreadSleepMs(uint32_t ms) { sleepMs = ms; }
     virtual void TestCode() = 0;
 };

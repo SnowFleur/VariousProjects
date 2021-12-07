@@ -1,6 +1,7 @@
 #include"TestProcessor.h"
 
-CTestProcessor::CTestProcessor(const int32_t runThreadCount)
+CTestProcessor::CTestProcessor(const int32_t runThreadCount):
+    sleepMs(10)
 {
     vecSnowThread_.reserve(runThreadCount);
 
@@ -21,7 +22,7 @@ uint32_t CTestProcessor::RunThread()
 {
     while (true)
     {
-        Sleep(100);
+        Sleep(sleepMs);
         TestCode();
     }
     return 0;
@@ -34,5 +35,11 @@ void CTestProcessor::StartTest()
     {
         thread->StartThread();
     }
+
+    for (auto& thread : vecSnowThread_)
+    {
+        thread->WaitForThread();
+    }
+
 }
 
