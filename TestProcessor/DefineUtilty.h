@@ -17,27 +17,3 @@
 #define SAFE_DELETE(x)          if(x!=nullptr)delete x;
 #define SAFE_DELETE_MULTI(x)    if(x!=nullptr)delete[] x;
 
-#if !VER_CPP_LEGACY  //C++11이상 지원하는 컴파일러
-#define DELETE_COPY(name)                    \
-public:                                      \
-name& operator=(const name&)    = delete;    \
-name(const name&)               = delete;                     
-
-#define DELETE_MOVE(name)                    \
-public:                                      \
-name& operator=(name&&)noexcept =delete;     \
-name(name&&)noexcept            =delete;      
-#elif VER_CPP_LEGACY
-#define DELETE_COPY(name)                    \
-private:                                     \
-name& operator=(const name&);                \
-name(const name&);                     
-#endif
-
-
-// Session 소멸자가 잘 호출되는지 확인용
-#define PRINT_DEBUG_SESSION_DESTRUCTOR
-
-// 메모리 풀이 아닌 New/Delete 함수를 사용하겠다. 
-#define USED_NEW_DELETE_FUNCTION
-
