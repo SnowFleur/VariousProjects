@@ -1,61 +1,17 @@
 #pragma once
 /*
 - Descriptor: C++ 메모리 블럭형식으로 메모리 풀 사용하는 코드
-- 현재는 사용 X (사용하는 경우 주석해제)
 */
 #include <cassert>
 #include<stdlib.h>
 #include <vector>
 #include<stack>
-
-//
-//class FixedMemoryBlock
-//{
-//private:
-//	void* m_memoryHandle;
-//	size_t	m_fixedMemorySize;    //  잘라야 하는 메모리 사이즈
-//	size_t	m_maxMemorySize;      //  총 메모리 사이즈
-//public:
-//
-//	FixedMemoryBlock(size_t size) :
-//		m_memoryHandle(nullptr),
-//		m_fixedMemorySize(size)
-//	{
-//		m_memoryHandle = (char*)malloc(m_maxMemorySize);
-//	}
-//
-//	~FixedMemoryBlock()
-//	{
-//
-//	}
-//
-//	void* Allocate(size_t size)
-//	{
-//		//메모리 핸들을 1바이트씩 자를 수 있는 char* 포인터형으로 캐스팅
-//		char* p = reinterpret_cast<char*>(m_memoryHandle);
-//
-//		size_t divideMemory = m_maxMemorySize / m_fixedMemorySize;
-//
-//		//블록간의 연결리스트 생성
-//		for (; divideMemory > 1; --divideMemory, p += size)
-//		{
-//			*reinterpret_cast<char**>(p) = p + size;
-//		}
-//		//마지막은 NULL
-//		*reinterpret_cast<char**>(p) = nullptr;
-//		return m_memoryHandle;
-//	}
-//
-//	bool IsEmpty()const
-//	{
-//		return false;
-//	}
-//};
+#include<unordered_set>
 
 constexpr int32_t MEMORY_POOL_SIZE = 1024 * 100;
 constexpr int32_t MAX_ALLOCATE_SIZE = 1024;
 
-constexpr  int32_t MIN_BLOCK_SIZE = 32;
+constexpr  int32_t MIN_BLOCK_SIZE = 4;
 constexpr  int32_t MAX_BLOCK_SIZE = 1024;
 
 
@@ -123,15 +79,16 @@ private:
 
 public:
 
-	MultiSizeMemoryPool() :pool_(MEMORY_POOL_SIZE)
+	MultiSizeMemoryPool() :pool_(MEMORY_POOL_SIZE, nullptr)
 	{
 		int32_t currentIndex = 1;
 
-		int32_t currentBlockSize = MIN_BLOCK_SIZE;
+		// 헤더크기만큼 더 확장해서 할당받는다.
+		int32_t currentBlockSize = MIN_BLOCK_SIZE + sizeof(MemoryPoolHeader);
 
 		while (currentIndex <= 2)
 		{
-			InitFixedMemorySize(currentIndex, currentBlockSize);
+			InitFixedMemorySize(currentIndex, 1, currentBlockSize);
 			// 다음 인덱스는 블록 크기만큼 증가
 			currentIndex += currentBlockSize;
 
@@ -140,21 +97,48 @@ public:
 		}
 	}
 
-	void InitFixedMemorySize(const int32_t startIndex, const int32_t blockSize)
+	~MultiSizeMemoryPool() noexcept
+	{
+		// 중복 해제를 방지하기 위한 집합
+		std::unordered_set<FixedMemoryBlock*> uniqueBlocks;
+
+		for (auto iter = pool_.begin(); iter != pool_.end(); ++iter)
+		{
+			if (FixedMemoryBlock* block = *iter; block != nullptr && uniqueBlocks.find(block) == uniqueBlocks.end())
+			{
+				delete block;
+
+				//중복해제 방지 
+				uniqueBlocks.insert(block);
+
+				// 해제 후 포인터를 null로 설정하여 중복 delete 방지
+				*iter = nullptr;
+			}
+		}
+	}
+
+	void InitFixedMemorySize(const int32_t startIndex, const int32_t blockCount, const int32_t blockSize)
 	{
 		FixedMemoryBlock* memoryBlock = new FixedMemoryBlock(blockSize);
 
-		for (int i = 0; i < blockSize; ++i) 
+		// 메모리 블럭 생성
+		for (int i = 0; i < blockCount; ++i)
 		{
 			MemoryPoolHeader* pHeader = static_cast<MemoryPoolHeader*>(malloc(blockSize));
 			memoryBlock->Push(pHeader);
+		}
 
+		// 해당 크기까지 Index 처리
+		for (int i = 0; i < blockSize; ++i)
+		{
 			pool_[startIndex + i] = memoryBlock;
 		}
 	}
 
-	void* Allocate(const size_t size)
+	void* Allocate(const size_t size) const
 	{
+
+		if (size == 0) return nullptr;
 
 		MemoryPoolHeader* pHeader = nullptr;
 
@@ -165,18 +149,40 @@ public:
 		}
 		else
 		{
-			pHeader = pool_[size]->Pop();
-		}
+			// 요청한거 + 헤더사이즈 만큼
+			pHeader = pool_[size + sizeof(MemoryPoolHeader)]->Pop();
 
+			// 생성자만 호출 
+			new(pHeader)MemoryPoolHeader(size);
+
+			// 헤더 크기보다 앞에 있는 포인터 주소를 반환
+			pHeader = (pHeader + sizeof(MemoryPoolHeader));
+		}
 		return pHeader;
 	}
 
-	void Deallocate(void* ptr)
+	void Deallocate(void* ptr) const
 	{
+		if (ptr == nullptr) return;
 
+		MemoryPoolHeader* pHeader = static_cast<MemoryPoolHeader*>(ptr);
+
+		// 앞에 있는 헤더 주소로 옮김
+		pHeader -= sizeof(MemoryPoolHeader);
+
+		if (pHeader->GetMemorySize() >= MAX_ALLOCATE_SIZE)
+		{
+			// 더 큰 메모리라면 그냥 지운다.
+			free(pHeader);
+		}
+		else
+		{
+			// 반납
+			pHeader = pool_[pHeader->GetMemorySize() + sizeof(MemoryPoolHeader)]->Pop();
+		}
 	}
 
 };
 
 
-
+static 	MultiSizeMemoryPool g_memory_pool;

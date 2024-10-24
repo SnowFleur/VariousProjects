@@ -1,6 +1,6 @@
-#include"SnowThread.h"
+#include"Thread.h"
 
-CSnowThread::~CSnowThread()noexcept 
+Thread::~Thread()noexcept 
 {
     if (threadHandle_ != INVALID_HANDLE_VALUE)
     {
@@ -21,7 +21,7 @@ CSnowThread::~CSnowThread()noexcept
 }
 
 /*여러 가지 기능들 */
-void CSnowThread::SetThreadPriority(const int32_t priority) 
+void Thread::SetThreadPriority(const int32_t priority) 
 {
     if (::SetThreadPriority(threadHandle_, priority) == 0)
     {
@@ -29,27 +29,28 @@ void CSnowThread::SetThreadPriority(const int32_t priority)
     }
 }
 
-int32_t CSnowThread::GetThreadPriority() const 
+int32_t Thread::GetThreadPriority() const 
 {
     if (threadHandle_ == INVALID_HANDLE_VALUE)return -1;
     return ::GetThreadPriority(threadHandle_);
 }
 
-void CSnowThread::ContextSwitch() {}
+void Thread::ContextSwitch() {}
 
-void CSnowThread::WaitForThread()
+void Thread::WaitForThread()
 {
     WaitForSingleObject(threadHandle_, INFINITE);
 }
 
-bool CSnowThread::StartThread() 
+bool Thread::StartThread() 
 {
     if (isStartThread_ == false)
     {
-        ResumeThread(threadHandle_);
-        isStartThread_ = true;
-        return true;
-    }
+		ResumeThread(threadHandle_);
+		isStartThread_ = true;
+		isRunning_ = true;
+		return true;
+	}
 
     return false;
 }

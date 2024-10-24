@@ -6,22 +6,26 @@
 -
 */
 
-#include"SnowThread.h"
+#include"../Common/SnowThread.h"
+#include"../Common/GlobalUtilFunctions.h"
 #include<memory>
 #include<vector>
-class CTestProcessor
+
+class TestProcessor
 {
 private:
-    std::vector<std::unique_ptr<CSnowThread >> vecSnowThread_;
-    int32_t sleepMs;
-
+	std::vector<std::unique_ptr<SnowThread >> threads_;
+    int32_t sleepMs_;
     uint32_t RunThread();
 public:
-    CTestProcessor(const int32_t runThreadCount);
-    virtual ~CTestProcessor();
+    explicit TestProcessor(const int32_t runThreadCount);
+    virtual ~TestProcessor();
+
+    DELETE_COPY(TestProcessor);
+    DELETE_MOVE(TestProcessor);
 
 public:
     void StartTest();
-    void SetThreadSleepMs(uint32_t ms) { sleepMs = ms; }
+    void SetThreadSleepMs(const uint32_t ms) { sleepMs_ = ms; }
     virtual void TestCode() = 0;
 };

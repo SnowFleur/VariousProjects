@@ -1,18 +1,18 @@
 
 #include <iostream>
-#include"MemoryPool.h"
 
+#include "MemoryPool.h"
 
 int main()
 {
-	MultiSizeMemoryPool b;
 
+	for (int32_t i = 0; i < 1000; ++i)
+	{
+		int* p = (int*)(g_memory_pool.Allocate(4));
+		*p = i;
+		std::cout << *p << "\n";
+		g_memory_pool.Deallocate(p);
+	}
 
-	int a = 5;
-
-	auto p = b.Allocate(150);
-	auto p2 = b.Allocate(4);
-
-	b.Deallocate(p);
 
 }
