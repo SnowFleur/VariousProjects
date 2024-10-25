@@ -1,0 +1,9 @@
+﻿<wpf:ResourceDictionary xml:space="preserve" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:s="clr-namespace:System;assembly=mscorlib" xmlns:ss="urn:shemas-jetbrains-com:settings-storage-xaml" xmlns:wpf="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=9e7f1ce1_002D9896_002D4ea7_002Daf05_002Dc199a62a9f64/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="TestName" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+  &lt;TestAncestor&gt;&#xD;
+    &lt;TestId&gt;GTest::5B254FAD-1A2F-4A92-B7A7-F67B9EEFAC22::Windows,Version=v10.0.22621::TestCaseName.TestName&lt;/TestId&gt;&#xD;
+  &lt;/TestAncestor&gt;&#xD;
+&lt;/SessionState&gt;</s:String>
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=cab57e35_002Deca4_002D4da9_002Da1b1_002D72d4f592ce99/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="test.cpp의 모든 테스트" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+  &lt;ProjectFile&gt;5B254FAD-1A2F-4A92-B7A7-F67B9EEFAC22/f:test.cpp&lt;/ProjectFile&gt;&#xD;
+&lt;/SessionState&gt;</s:String></wpf:ResourceDictionary>

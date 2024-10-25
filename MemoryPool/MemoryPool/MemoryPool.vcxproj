@@ -128,13 +128,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\TestProcessor\MemoryPoolTest.h" />
-    <ClInclude Include="..\..\TestProcessor\TestProcessor.h" />
     <ClInclude Include="MemoryPool.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\TestProcessor\MemoryPoolTest.cpp" />
-    <ClCompile Include="..\..\TestProcessor\TestProcessor.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
