@@ -1,6 +1,7 @@
 #pragma once
 #include <array>
 #include <cstdint>
+#include"../../Common/GlobalUtilFunctions.h"
 
 
 // 아래 2개만 유동적으로 조절 나머지는 수정할일 없음
@@ -17,7 +18,9 @@ private:
     size_t memorySize_;
 public:
     explicit MemoryPoolHeader(const size_t memorySize) : memorySize_(memorySize) {}
-
+	DELETE_COPY(MemoryPoolHeader);
+	DELETE_MOVE(MemoryPoolHeader);
+public:
     // 반환형에 constexpr 이면 const, constexpr 모두 가능
     [[nodiscard]] constexpr size_t GetMemorySize() const { return memorySize_; }
     void ResetMemorySize() { memorySize_ = 0; }
@@ -44,7 +47,9 @@ public:
 				}
 				return indexMap;
 			}()) {}
-
+	DELETE_COPY(BlockSizeLookup);
+	DELETE_MOVE(BlockSizeLookup);
+public:
 	[[nodiscard]] constexpr size_t GetBlockIndex(size_t size) const
 	{
 		return (size <= MAX_BLOCK_SIZE) ? indexMap_[size] : INVALID_INDEX;
