@@ -1,50 +1,46 @@
 #pragma once
-
 #include <stack>
-#include <vector>
-#include <unordered_set>
 #include <cassert>
 #include <cstdlib>
+#include<vector>
 
-// 블록 크기 및 개수 상수 정의
-constexpr int32_t BLOCK_32_SIZE = 32;
-constexpr int32_t BLOCK_32_COUNT = 30;
+#include"../../Common/GlobalUtilFunctions.h"
+#include "MemoryPoolConfig.h"
 
-constexpr int32_t BLOCK_64_SIZE = 64;
-constexpr int32_t BLOCK_64_COUNT = 25;
-
-constexpr int32_t BLOCK_128_SIZE = 128;
-constexpr int32_t BLOCK_128_COUNT = 20;
-
-constexpr int32_t BLOCK_256_SIZE = 256;
-constexpr int32_t BLOCK_256_COUNT = 15;
-
-constexpr int32_t BLOCK_512_SIZE = 512;
-constexpr int32_t BLOCK_512_COUNT = 10;
-
-// 블록 설정 관련 상수 정의
-constexpr int32_t MIN_BLOCK_SIZE = BLOCK_32_SIZE;
-constexpr int32_t MAX_BLOCK_SIZE = BLOCK_512_SIZE;
-constexpr int32_t BLOCK_KIND = 5;
-
-class MemoryPoolHeader
-{
-private:
-	int32_t memorySize_;
-public:
-	explicit MemoryPoolHeader(int32_t memorySize) : memorySize_(memorySize) {}
-
-	constexpr int32_t GetMemorySize() const { return memorySize_; }
-	void ResetMemorySize() { memorySize_ = 0; }
-};
-
-class FixedMemoryBlock
+class MemoryBlockStack
 {
 private:
 	std::stack<MemoryPoolHeader*> memoryBlock_;
-	const int32_t blockSize_;
+	const size_t blockSize_;
+
 public:
-	explicit FixedMemoryBlock(int32_t blockSize) : blockSize_(blockSize) {}
+	explicit MemoryBlockStack(const size_t blockSize) : blockSize_(blockSize) {}
+
+	~MemoryBlockStack() noexcept
+	{
+		while (!memoryBlock_.empty())
+		{
+			const auto iter = memoryBlock_.top();
+			memoryBlock_.pop();
+			if (iter != nullptr)
+			{
+				free(iter);
+			}
+
+		}
+	}
+	DELETE_COPY(MemoryBlockStack);
+	DELETE_MOVE(MemoryBlockStack);
+public:
+	void AllocateHeaders(const size_t blockCount)
+	{
+		for (size_t i = 0; i < blockCount; ++i)
+		{
+			//Malloc 
+			MemoryPoolHeader* pHeader = static_cast<MemoryPoolHeader*>(malloc(blockSize_));
+			memoryBlock_.push(pHeader);
+		}
+	}
 
 	void Push(MemoryPoolHeader* pHeader)
 	{
@@ -58,107 +54,79 @@ public:
 
 	MemoryPoolHeader* Pop()
 	{
-		MemoryPoolHeader* pHeader = nullptr;
-
 		if (!memoryBlock_.empty())
 		{
-			pHeader = memoryBlock_.top();
+			MemoryPoolHeader* pHeader = memoryBlock_.top();
 			memoryBlock_.pop();
+			return pHeader;
 		}
-		else
-		{
-			pHeader = static_cast<MemoryPoolHeader*>(malloc(blockSize_));
-			if (pHeader == nullptr) assert(false && "pHeader bad allocated");
-		}
-		return pHeader;
+		return  static_cast<MemoryPoolHeader*>(malloc(blockSize_));
 	}
 };
 
-class MultiSizeMemoryPool
+class MemoryPoolManager
 {
 private:
-	std::vector<FixedMemoryBlock*> pool_;
+	std::vector<MemoryBlockStack*> pool_;
+private:
+	void InitFixedMemorySize(const int32_t index, const int32_t blockSize, const int32_t blockCount)
+	{
+		pool_[index] = new MemoryBlockStack(blockSize + sizeof(MemoryPoolHeader));
+		pool_[index]->AllocateHeaders(blockCount);
+	}
 public:
-	MultiSizeMemoryPool() : pool_(MAX_BLOCK_SIZE + sizeof(MemoryPoolHeader), nullptr)
+	MemoryPoolManager() : pool_(NUM_BLOCK_TYPES)
 	{
-		int32_t currentIndex = 1;
-
-		constexpr int32_t blockSizes[BLOCK_KIND] = { BLOCK_32_SIZE, BLOCK_64_SIZE, BLOCK_128_SIZE, BLOCK_256_SIZE, BLOCK_512_SIZE };
-		constexpr int32_t blockCounts[BLOCK_KIND] = { BLOCK_32_COUNT, BLOCK_64_COUNT, BLOCK_128_COUNT, BLOCK_256_COUNT, BLOCK_512_COUNT };
-
-		for (int i = 0; i < BLOCK_KIND; ++i)
+		for (int32_t i = 0; i < NUM_BLOCK_TYPES; ++i)
 		{
-			int32_t currentBlockSize = blockSizes[i] + sizeof(MemoryPoolHeader);
-			InitFixedMemorySize(currentIndex, blockCounts[i], currentBlockSize);
-			currentIndex += currentBlockSize;
+			InitFixedMemorySize(i, BLOCK_SIZES[i], BLOCK_COUNTS[i]);
 		}
 	}
 
-	~MultiSizeMemoryPool() noexcept
+	~MemoryPoolManager()
 	{
-		std::unordered_set<FixedMemoryBlock*> uniqueBlocks;
-		for (auto& block : pool_)
+		for (const auto* block : pool_)
 		{
-			if (block != nullptr && uniqueBlocks.find(block) == uniqueBlocks.end())
-			{
-				delete block;
-				uniqueBlocks.insert(block);
-				block = nullptr;
-			}
+			delete block;
 		}
 	}
-
-	void InitFixedMemorySize(int32_t startIndex, int32_t blockCount, int32_t blockSize)
+	DELETE_COPY(MemoryPoolManager);
+	DELETE_MOVE(MemoryPoolManager);
+public:
+	[[nodiscard]] void* Allocate(const size_t size) const
 	{
-		FixedMemoryBlock* memoryBlock = new FixedMemoryBlock(blockSize);
+		const int32_t index = BLOCK_SIZE_LOOKUP.GetBlockIndex(size);
 
-		for (int i = 0; i < blockCount; ++i)
-		{
-			MemoryPoolHeader* pHeader = static_cast<MemoryPoolHeader*>(malloc(blockSize));
-			memoryBlock->Push(pHeader);
-		}
+		// 메모리 풀에 없는 사이즈면 할당해서 넘겨준다.
+		if (index == INVALID_INDEX) return malloc(size);
 
-		for (int i = 0; i < blockSize; ++i)
-		{
-			pool_[startIndex + i] = memoryBlock;
-		}
-	}
+		MemoryPoolHeader* pHeader = pool_[index]->Pop();
 
-	[[nodiscard]] void* Allocate(size_t size) const
-	{
-		if (size == 0) return nullptr;
+		// 생성자만 호출
+		new(pHeader) MemoryPoolHeader(size);
 
-		MemoryPoolHeader* pHeader = nullptr;
-
-		if (size >= MAX_BLOCK_SIZE)
-		{
-			pHeader = static_cast<MemoryPoolHeader*>(malloc(size));
-		}
-		else
-		{
-			pHeader = pool_[size + sizeof(MemoryPoolHeader)]->Pop();
-			new(pHeader) MemoryPoolHeader(size);
-			pHeader = (pHeader + sizeof(MemoryPoolHeader));
-		}
-		return pHeader;
+		// Header 뒤에 있는 주소값을 리턴
+		return pHeader + 1;
 	}
 
 	void Deallocate(void* ptr) const
 	{
 		if (ptr == nullptr) return;
 
-		MemoryPoolHeader* pHeader = static_cast<MemoryPoolHeader*>(ptr);
-		pHeader -= sizeof(MemoryPoolHeader);
+		MemoryPoolHeader* pHeader = static_cast<MemoryPoolHeader*>(ptr) - 1;
+		const int32_t size = pHeader->GetMemorySize();
 
-		if (pHeader->GetMemorySize() >= MAX_BLOCK_SIZE)
+		if (const int32_t index = BLOCK_SIZE_LOOKUP.GetBlockIndex(size); index == INVALID_INDEX)
 		{
-			free(pHeader);
+			//free(pHeader);
 		}
 		else
 		{
-			pool_[pHeader->GetMemorySize() + sizeof(MemoryPoolHeader)]->Push(pHeader);
+			pool_[index]->Push(pHeader);
 		}
 	}
+
 };
 
-static MultiSizeMemoryPool g_memory_pool;
+// 전역 메모리 풀 인스턴스
+inline MemoryPoolManager g_memory_pool;
